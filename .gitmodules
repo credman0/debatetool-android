@@ -1,0 +1,6 @@
+[submodule "app/src/main/java/org/debatetool/core"]
+	path = app/src/main/java/org/debatetool/core
+	url = https://github.com/credman0/debate-tool-core
+[submodule "app/src/main/java/org/debatetool/io"]
+	path = app/src/main/java/org/debatetool/io
+	url = https://github.com/credman0/debate-tool-io
