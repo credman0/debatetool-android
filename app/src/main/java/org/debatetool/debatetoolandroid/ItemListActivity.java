@@ -122,6 +122,7 @@ public class ItemListActivity extends AppCompatActivity {
                 if (node.getContent() instanceof File){
                     Intent intent = new Intent(getApplicationContext(), ContentViewActivity.class);
                     intent.putExtra("fileContent", (File) node.getContent());
+                    intent.putExtra("label", ((File) node.getContent()).getContent().getLabel());
                     startActivity(intent);
                 }
 
