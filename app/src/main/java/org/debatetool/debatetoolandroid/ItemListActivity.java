@@ -1,22 +1,31 @@
 package org.debatetool.debatetoolandroid;
 
-import android.content.Context;
-import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.view.LayoutInflater;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageView;
 
-import org.debatetool.debatetoolandroid.dummy.DummyContent;
+import org.debatetool.debatetoolandroid.tree.DebateTreeNode;
+import org.debatetool.debatetoolandroid.tree.Directory;
+import org.debatetool.debatetoolandroid.tree.DirectoryNodeBinder;
+import org.debatetool.debatetoolandroid.tree.File;
+import org.debatetool.debatetoolandroid.tree.FileNodeBinder;
+import org.debatetool.io.iocontrollers.IOController;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import tellh.com.recyclertreeview_lib.TreeNode;
+import tellh.com.recyclertreeview_lib.TreeViewAdapter;
 
 /**
  * An activity representing a list of Items. This activity
@@ -60,81 +69,69 @@ public class ItemListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        View recyclerView = findViewById(R.id.item_list);
+        RecyclerView recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        setupRecyclerView(recyclerView);
+    }
+
+    private class InitMongoTask extends AsyncTask<String, Integer, List<TreeNode>>{
+
+
+        @Override
+        protected List<TreeNode> doInBackground(String ... strings) {
+            return startMongoGetRoot();
+
+        }
+    }
+
+    private  List<TreeNode> startMongoGetRoot(){
+        IOController.getIoController().attemptAuthenticate("ec2-3-18-215-223.us-east-2.compute.amazonaws.com", 27017, "user", "password");
+        List<TreeNode> root = new ArrayList<>();
+        List<String> rootNames = IOController.getIoController().getStructureIOManager().getRoot();
+        for (String name:rootNames){
+            TreeNode dir = new DebateTreeNode(new Directory(name));
+            dir.addChild(new DebateTreeNode(new File(name)));
+            root.add(dir);
+        }
+        return root;
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, mTwoPane));
-    }
-
-    public static class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
-        private final ItemListActivity mParentActivity;
-        private final List<DummyContent.DummyItem> mValues;
-        private final boolean mTwoPane;
-        private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        InitMongoTask backgroundMongo = new InitMongoTask();
+        backgroundMongo.execute();
+        List<TreeNode> root = null;
+        try {
+            root = backgroundMongo.get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+                TreeViewAdapter adapter = new TreeViewAdapter(root, Arrays.asList(new FileNodeBinder(), new DirectoryNodeBinder()));
+        // whether collapse child nodes when their parent node was close.
+//        adapter.ifCollapseChildWhileCollapseParent(true);
+        adapter.setOnTreeNodeListener(new TreeViewAdapter.OnTreeNodeListener() {
             @Override
-            public void onClick(View view) {
-                DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
-                if (mTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(ItemDetailFragment.ARG_ITEM_ID, item.id);
-                    ItemDetailFragment fragment = new ItemDetailFragment();
-                    fragment.setArguments(arguments);
-                    mParentActivity.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit();
-                } else {
-                    Context context = view.getContext();
-                    Intent intent = new Intent(context, ItemDetailActivity.class);
-                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, item.id);
-
-                    context.startActivity(intent);
+            public boolean onClick(TreeNode node, RecyclerView.ViewHolder holder) {
+                if (!node.isLeaf()) {
+                    //Update and toggle the node.
+                    onToggle(!node.isExpand(), holder);
+//                    if (!node.isExpand())
+//                        adapter.collapseBrotherNode(node);
                 }
+                return false;
             }
-        };
 
-        SimpleItemRecyclerViewAdapter(ItemListActivity parent,
-                                      List<DummyContent.DummyItem> items,
-                                      boolean twoPane) {
-            mValues = items;
-            mParentActivity = parent;
-            mTwoPane = twoPane;
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
-
-            holder.itemView.setTag(mValues.get(position));
-            holder.itemView.setOnClickListener(mOnClickListener);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mValues.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mIdView;
-            final TextView mContentView;
-
-            ViewHolder(View view) {
-                super(view);
-                mIdView = (TextView) view.findViewById(R.id.id_text);
-                mContentView = (TextView) view.findViewById(R.id.content);
+            @Override
+            public void onToggle(boolean isExpand, RecyclerView.ViewHolder holder) {
+                DirectoryNodeBinder.ViewHolder dirViewHolder = (DirectoryNodeBinder.ViewHolder) holder;
+                final ImageView ivArrow = dirViewHolder.getIvArrow();
+                int rotateDegree = isExpand ? 90 : -90;
+                ivArrow.animate().rotationBy(rotateDegree)
+                        .start();
             }
-        }
+        });
+        recyclerView.setAdapter(adapter);
     }
 }

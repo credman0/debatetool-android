@@ -18,6 +18,6 @@ public class Directory implements LayoutItemType {
     }
     @Override
     public int getLayoutId() {
-        return R.layout.item_detail;
+        return R.layout.item_dir;
     }
 }
