@@ -31,7 +31,7 @@ import tellh.com.recyclertreeview_lib.TreeViewAdapter;
  * An activity representing a list of Items. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link ItemDetailActivity} representing
+ * lead to a representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
@@ -75,12 +75,9 @@ public class ItemListActivity extends AppCompatActivity {
     }
 
     private class InitMongoTask extends AsyncTask<String, Integer, List<TreeNode>>{
-
-
         @Override
         protected List<TreeNode> doInBackground(String ... strings) {
             return startMongoGetRoot();
-
         }
     }
 
@@ -88,9 +85,9 @@ public class ItemListActivity extends AppCompatActivity {
         IOController.getIoController().attemptAuthenticate("ec2-3-18-215-223.us-east-2.compute.amazonaws.com", 27017, "user", "password");
         List<TreeNode> root = new ArrayList<>();
         List<String> rootNames = IOController.getIoController().getStructureIOManager().getRoot();
+        // TODO add nondirectories
         for (String name:rootNames){
             TreeNode dir = new DebateTreeNode(new Directory(name));
-            dir.addChild(new DebateTreeNode(new File(name)));
             root.add(dir);
         }
         return root;
@@ -108,7 +105,7 @@ public class ItemListActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-                TreeViewAdapter adapter = new TreeViewAdapter(root, Arrays.asList(new FileNodeBinder(), new DirectoryNodeBinder()));
+        TreeViewAdapter adapter = new TreeViewAdapter(root, Arrays.asList(new FileNodeBinder(), new DirectoryNodeBinder()));
         // whether collapse child nodes when their parent node was close.
 //        adapter.ifCollapseChildWhileCollapseParent(true);
         adapter.setOnTreeNodeListener(new TreeViewAdapter.OnTreeNodeListener() {
@@ -119,6 +116,9 @@ public class ItemListActivity extends AppCompatActivity {
                     onToggle(!node.isExpand(), holder);
 //                    if (!node.isExpand())
 //                        adapter.collapseBrotherNode(node);
+                }else{
+                    Snackbar.make(recyclerView, "Replace with your own action", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
                 }
                 return false;
             }
@@ -134,4 +134,5 @@ public class ItemListActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(adapter);
     }
+
 }

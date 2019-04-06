@@ -21,7 +21,7 @@ public class FileNodeBinder extends TreeViewBinder<FileNodeBinder.ViewHolder> {
     @Override
     public void bindView(ViewHolder holder, int position, TreeNode node) {
         File fileNode = (File) node.getContent();
-        holder.tvName.setText(fileNode.fileName);
+        holder.tvName.setText(fileNode.getContent().getLabel());
     }
 
     @Override

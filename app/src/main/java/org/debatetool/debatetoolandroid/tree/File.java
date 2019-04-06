@@ -1,5 +1,6 @@
 package org.debatetool.debatetoolandroid.tree;
 
+import org.debatetool.core.HashIdentifiedSpeechComponent;
 import org.debatetool.debatetoolandroid.R;
 
 import tellh.com.recyclertreeview_lib.LayoutItemType;
@@ -9,14 +10,18 @@ import tellh.com.recyclertreeview_lib.LayoutItemType;
  */
 
 public class File implements LayoutItemType {
-    public String fileName;
+    private HashIdentifiedSpeechComponent content;
 
-    public File(String fileName) {
-        this.fileName = fileName;
+    public File(HashIdentifiedSpeechComponent content) {
+        this.content = content;
     }
 
     @Override
     public int getLayoutId() {
         return R.layout.item_file;
+    }
+
+    public HashIdentifiedSpeechComponent getContent() {
+        return content;
     }
 }
