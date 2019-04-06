@@ -44,6 +44,7 @@ public class ItemListActivity extends AppCompatActivity {
      * device.
      */
     private boolean mTwoPane;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +72,9 @@ public class ItemListActivity extends AppCompatActivity {
             mTwoPane = true;
         }
 
-        RecyclerView recyclerView = findViewById(R.id.item_list);
+        recyclerView = findViewById(R.id.item_list);
         assert recyclerView != null;
-        setupRecyclerView(recyclerView);
+        login();
     }
 
     private class InitMongoTask extends AsyncTask<String, Integer, List<TreeNode>>{
@@ -83,8 +84,20 @@ public class ItemListActivity extends AppCompatActivity {
         }
     }
 
+    static final int LOGIN_REQUEST = 1;
+
+    private void login(){
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        startActivityForResult(intent, LOGIN_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        setupRecyclerView(recyclerView);
+    }
+
     private  List<TreeNode> startMongoGetRoot(){
-        IOController.getIoController().attemptAuthenticate("ec2-3-18-215-223.us-east-2.compute.amazonaws.com", 27017, "user", "password");
         List<TreeNode> root = new ArrayList<>();
         List<String> rootNames = IOController.getIoController().getStructureIOManager().getRoot();
         // TODO add nondirectories
