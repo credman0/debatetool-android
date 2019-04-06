@@ -1,5 +1,6 @@
 package org.debatetool.debatetoolandroid;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 
+import org.debatetool.core.HashIdentifiedSpeechComponent;
 import org.debatetool.debatetoolandroid.tree.DebateTreeNode;
 import org.debatetool.debatetoolandroid.tree.Directory;
 import org.debatetool.debatetoolandroid.tree.DirectoryNodeBinder;
@@ -116,10 +118,13 @@ public class ItemListActivity extends AppCompatActivity {
                     onToggle(!node.isExpand(), holder);
 //                    if (!node.isExpand())
 //                        adapter.collapseBrotherNode(node);
-                }else{
-                    Snackbar.make(recyclerView, "Replace with your own action", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
                 }
+                if (node.getContent() instanceof File){
+                    Intent intent = new Intent(getApplicationContext(), ContentViewActivity.class);
+                    intent.putExtra("fileContent", (File) node.getContent());
+                    startActivity(intent);
+                }
+
                 return false;
             }
 

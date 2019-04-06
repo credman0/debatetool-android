@@ -3,13 +3,15 @@ package org.debatetool.debatetoolandroid.tree;
 import org.debatetool.core.HashIdentifiedSpeechComponent;
 import org.debatetool.debatetoolandroid.R;
 
+import java.io.Serializable;
+
 import tellh.com.recyclertreeview_lib.LayoutItemType;
 
 /**
  * Created by tlh on 2016/10/1 :)
  */
 
-public class File implements LayoutItemType {
+public class File implements LayoutItemType, Serializable {
     private HashIdentifiedSpeechComponent content;
 
     public File(HashIdentifiedSpeechComponent content) {
